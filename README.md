@@ -77,4 +77,4 @@ These external dependencies are added within the source code of CLUMP, to provid
 ## BYOS (Bring Your Own Scripts)!
 If you enjoy using CLUMP, you are welcome to require the implementation of new clump-generation approaches and features or even better contribute and share your implementations. CLUMP was created to provide a comparison of different methods, by collecting them in one place and we share this tool hoping that members of the community will find it useful. So, feel free to expand the code, propose improvements and report issues.
 
-<h4 align="center">2020 © Vasileios Angelidakis, Sadegh Nadimi, Masahide Otsubo, Stefano Utili. Newcastle University, UK; The University of Tokyo, Japan</a></h4>
+<h4 align="center">2020 © Vasileios Angelidakis, Sadegh Nadimi, Masahide Otsubo, Stefano Utili. <br/> Newcastle University, UK; The University of Tokyo, Japan</a></h4>
