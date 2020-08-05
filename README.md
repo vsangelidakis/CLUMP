@@ -24,7 +24,6 @@
   <a href="#simple-example">Simple example</a> •
   <a href="#credits">Credits</a> •
   <a href="#byos-bring-your-own-scripts">BYOS</a> •
-  <a href="#license">License</a>
 </p>
 
 ---
