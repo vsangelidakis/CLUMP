@@ -29,15 +29,15 @@
 ---
 
 ## What CLUMP does
-CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like SHAPE. 
+CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like [SHAPE](https://github.com/vsangelidakis/SHAPE).
 
 ## Architectural features
 CLUMP comprises the following modules:
 
 - __Generate_Clump__
   - Favier et al (1999)
-  - Ferellec_and_McDowell (2010)
-  - Euclidean_3D (proposed in this code)
+  - Ferellec and McDowell (2010)
+  - Euclidean 3D (proposed in this code)
 
 - __Export_clump__
   - YADE
