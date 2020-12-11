@@ -29,48 +29,64 @@
 ---
 
 ## What CLUMP does
-CLUMP is a collection of simple scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The produced particle shapes can be exported to several formats, compatible with various DEM solvers.
+CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like SHAPE. 
 
 ## Architectural features
-CLUMP started as an implementation of existing methods to generate clumps and clusters of spherical particles. Along the way, we developed our own methodologies, which are shared as part of the code. CLUMP supports the following approaches:
+CLUMP comprises the following modules:
 
-```Matlab
--Favier
--Ferellec_and_McDowell
--Euclidean_map
-```
+- __Generate_Clump__
+  - Favier et al (1999)
+  - Ferellec_and_McDowell (2010)
+  - Euclidean_3D (proposed in this code)
+
+- __Export_clump__
+  - YADE
+  - LAMMPS
+  - EDEM
+  - PFC3D
+
+- __Characterise_Clump__
+  - Surface extraction
 
 ## File tree
 - __CLUMP__
   - [LICENSE](LICENSE)
   - [README.md](README.md)
+  - [README.txt](README.txt)
   - __classes__ (Definition of objects)
   - __examples__
   - __figures__
-  - __functions__ (Some of the functions are overloaded as methods in the classes)
+  - __functions__
   - __lib__ (External dependencies)
 
 
 ## Simple example
-This example demonstrates different approaches to generate clumps for the same target geometry.
+This example demonstrates different approaches to generate clumps for the same target geometry. The variables below are documented within each function.
 
 ```Matlab
 addpath(genpath('functions'));	% Load in-house functions
-addpath(genpath('lib'));	% Load external functions (dependencies)
-addpath(genpath('classes'));	% Load object-oriented architecture
+addpath(genpath('lib'));		% Load external functions (dependencies)
+addpath(genpath('classes'));	% Load object-oriented architecture				%% FIXME: To be reviewed.
 
-% Generate clumps using the approach of Favier
+% Generate clumps using the approach of Favier et al (1999)
 xxx
 
-% Generate clumps using the approach of Ferellec and McDowell
-xxx
+% Generate clumps using the approach of Ferellec and McDowell (2010)
+[mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output );
+
+% Generate clumps using the approach proposed in this code, involving the Euclidean transform of 3D images
+[mesh, clump]=clumpGenerator_Euclidean_3D( stlFile, N, rMin, div, overlap, output );
 ```
 
 New users are advised to start from running the available examples in the [examples](examples) folder, to get familiarised with the syntax and functionalities of CLUMP.
 
 ## Credits
-CLUMP uses several external functions available within the Matlab FEX community. We want to acknowledge the work of the following contributions:
-xxx
+CLUMP uses several external functions available within the Matlab FEX community. We want to acknowledge the following contributions:
+  - Qianqian Fang - [Iso2Mesh](https://uk.mathworks.com/matlabcentral/fileexchange/68258-iso2mesh)
+  - Luigi Giaccari - [Surface Reconstruction From Scattered Points Cloud](https://www.mathworks.com/matlabcentral/fileexchange/63730-surface-reconstruction-from-scattered-points-cloud)
+  - Dirk-Jan Kroon - [Patch Normals](https://uk.mathworks.com/matlabcentral/fileexchange/24330-patch-normals)
+  - Pau Micó - [stlTools](https://uk.mathworks.com/matlabcentral/fileexchange/51200-stltools)
+  - Anton Semechko - [Rigid body parameters of closed surface meshes](https://uk.mathworks.com/matlabcentral/fileexchange/48913-rigid-body-parameters-of-closed-surface-meshes)
 
 These external dependencies are added within the source code of CLUMP, to provide an out-of-the-box implementation. The licensing terms of each external dependency can be found inside the [lib](lib/) folder.
 
