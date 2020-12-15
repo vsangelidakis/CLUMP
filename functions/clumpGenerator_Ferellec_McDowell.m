@@ -1,45 +1,62 @@
-function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, pmax, varargin )
-
-%% Implementation of the clump-generation concept proposed by Ferellec and McDowell (2008)
-% Copyright © 2020 V. Angelidakis. All rights reserved
+function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, varargin )
+%% Implementation of the clump-generation concept proposed by Ferellec and McDowell (2010) [1]
+% 2020 © V. Angelidakis, S. Nadimi, M. Otsubo, S. Utili.
+% [1] Ferellec, J.F. and McDowell, G.R., 2010. Granular Matter, 12(5), pp.459-467. DOI 10.1007/s10035-010-0205-8
 
 %% The main concept of this methodology:
-% 1. We import the surface mesh of a particle
-% 2. We calculate the normal of each vertex pointing inwards
+% 1. We import the surface mesh of a particle.
+% 2. We calculate the normal of each vertex pointing inwards.
 % 3. For a random vertex on the particle surface, we start creating
-%	 tangent spheres with incremental radius along the vertex normal, starting
-%    from rmin, until they meet the surface of the particle.
+%	 tangent spheres with incremental radii along the vertex normal,
+%	 starting from 'rmin', with a step of 'rstep', until they meet the
+%	 surface of the particle.
 % 4. We select a new vertex randomly, which has a distance larger
-%    than dmin from the existing spheres and do the same
-% 5. When a percentage pmax of all the vertices is used to generate
+%    than 'dmin' from the existing spheres and do the same.
+% 5. When a percentage 'pmax' of all the vertices is used to generate
 %    spheres, the generation procedure stops.
+% -  An optional 'seed' parameter is introduced, to generate reproducible
+%    clumps.
 
 %% Influence of parameters
 % rmin:	(0,inf) Larger rmin will lead to a smaller number of spheres
 % dmin: [0,inf) Larger dmin will lead to a smaller number of spheres
 % pmax: (0,1]   Larger pmax will lead to a larger number of spheres
 
-% Pros: The authors of this methodology claim efficiency and preservation of flat faces (reduced artificial roughness compared to other techniques).
-% Cons: Mesh-dependency: If the initial surface mesh is coarse, the minimum radius rmin might not be used.
-% Warning: If the initial mesh is very finely discretised, the authors of this method warn against "parasitic spheres", i.e. very small spheres which might result to numerical instabilities when using DEM.
+% Pros:		The authors of this methodology claim efficiency and preservation
+%			of flat faces (reduced artificial roughness compared to other techniques).
+% Cons:		The methodology is mesh-dependent, as spheres are generated at the
+%			vertices of the input mesh.
+% Warning:	The authors of this methodology advise that if the initial mesh
+%			is very finely discretised, an adequately large rmin value
+%			should be used, to guard the process against "parasitic
+%			spheres", i.e. very small spheres which might result to
+%			numerical instabilities when using DEM.
 
 %% INPUT:
 %	- stlFile:	Directory of stl file, used to generate spheres
 %
-%	- dmin	:	Minimum allowed distance between new vertex of the surface 
-%				mesh and existing spheres. If left zero, this distance is 
+%	- dmin	:	Minimum allowed distance between new vertex of the surface
+%				mesh and existing spheres. If left zero, this distance is
 %				not cheched.
 %
 %	- rmin	:	Minimum radius of sphere to be generated. For coarse
 %				meshes, the actual minimum radius might be >rmin.
 %
+%	- rstep	:	Step used to increase the radius in each iteration, until
+%				the generated sphere meets another point of the particle.
+%
 %	- pmax	:	Percentage of vertices which will be used to generate
 %				spheres. The selection of vertices is random.
 %
-%	- seed	:	Seed value, used to achieve reproducible (random) results (optional)
+%	- seed	:	Seed value, used to achieve reproducible (random) results (optional)*
 %
-%	- output:	File name for output of the clump in .txt form	(optional).
+%	- output:	File name for output of the clump in .txt form	(optional)*.
 %				If not assigned, a .txt output file is not created.
+%
+%	-visualise: Whether to plot the clump and mesh (optional)*.
+%
+% * varargin can contain either of the optimal variables "seed", "output",
+% visualise" or else: seed=varargin{1}; output=varargin{2}; visualise=varargin{3}.
 
 %% OUTPUT:
 %	- mesh	:	structure containing all relevant parameters of polyhedron
@@ -59,6 +76,7 @@ function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, pm
 %				clump.minRadius		:	Minimum generated sphere (might
 %										differ from rmin)
 %				clump.maxRadius		:	Maximum generated sphere
+%
 %				clump.numSpheres	:	Total number of spheres
 %
 %	- output :	txt file with centroids and radii, with format: [x,y,z,r]
@@ -72,58 +90,37 @@ function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, pm
 %				clump.inertia		:	Inertia of clump before (or after)
 %										density correction
 %				clump.volumes		:	Volume of each sphere
+%
 %				clump.inertias		:	Inertia of each sphere
 %
 
-%% Regarding density, Ferellec and McDowell (2010) advise:
-% (Ferellec and McDowell (2010) Granular Matter 12:459–467 DOI
-% 10.1007/s10035-010-0205-8)
-
-% "The drawback of overlapping spheres is the major problem of overlapping
-% mass leading to a non-uniform density of the particle and hence an
-% incorrect inertia tensor and centre of gravity, giving a false rolling
-% resistance" 
-
-% "Building realistic particle shapes using overlapping spheres of the same
-% density leads to an incorrect mass distribution inside the particle even
-% if the overall mass of the particle is scaled to the real particle mass.
-% Indeed because of larger overlapping in the middle of the particle, the
-% particle density decreases from the middle to the surface of the particle
-% as the spheres are all given the same density"
-
-% "The authors proposed a method which consists in choosing adequately
-% differential densities for the spheres. They showed that the inertia is
-% greatly improved by setting the density of each sphere inversely
-% proportional to its volume,leaving all spheres with the same mass instead
-% of the same density. The total mass of the particle is still scaled to be
-% the same as that of the real particle but with a more uniform mass
-% distribution inside the particle"
-
-% Vasileios: I guess they did this investigation because in their code each
-% sphere has to have a density. In YADE, a clump is generated as a new body
-% and its mass/inertia can be assigned manually or automatically, by
-% neglecting the overlaps. So, non-uniform density is not an important
-% issue. I do not know how LAMMPS handles overlaps.
+%% EXAMPLE
+% stlFile='Hexahedron_Fine_Mesh.stl';	dmin=0.01;	rmin=0.01; rstep=0.001;	pmax=1.0;	seed=5;	output='hexaFine.txt'; visualise=true;
+% [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output, visualise );
 
 %% TODO
 % We can calculate the centroid/volume/inertia of the clump and compare it to that of the actual particle
 % Ensure the vertex normals are pointing inwards for concave meshes (so far this is done only for convex meshes)
 
-%% Define variables based on the number of inputs
+%% Define variables based on the type of the optional parameters (varargin)
 output=[];
-if nargin>4
-	if ischar(varargin{1})
-		output=varargin{1};
-	else
-		seed=varargin{1};
-		if nargin>5
-			output=varargin{2};
-		end		
+visualise=false;
+for i=1:length(varargin)
+	switch class(varargin{i})
+		case 'double'
+			seed=varargin{i}; rng(seed);	% Fixed seed to achieve reproducible (random) results
+		case 'char'
+			output=varargin{i};
+		case 'logical'
+			visualise=varargin{i};
+		otherwise
+			error('Wrong optional parameter type.')
 	end
 end
 
 %% Main body of the function
-addpath(genpath('functions')) % Add path to dependencies (external codes)
+%% Import Dependencies
+addpath(genpath('../lib')) % Add path to dependencies (external codes)
 
 [P,F,~] = stlRead(stlFile);
 
@@ -131,15 +128,14 @@ FV=struct();
 FV.vertices=P;
 FV.faces=F;
 
-N=patchnormals(FV);
+N=patchnormals(FV);	%% FIXME: Revisit to replace this with Matlab's in-house function to calculate normals of triangulations. To this, I can transform FV into a triangulation object, instead of a "patch" style struct. Also, remove patchnormals from the dependencies.
 [RBP,~]=RigidBodyParams(FV);
-% disp(RBP)
 % VisualizeLocalFrame(TR,3)
 
 %% Ensure the vertex normals are pointing inwards
-%% ATTENTION: This approach works only for convex polyhedra with manifold meshes.
+%% ATTENTION: This approach is guaranteed to work only for convex polyhedra with manifold meshes.
 % For concave polyhedra, the vector of a random vertex to the centroid
-% does not reflect whether the face is poining inwards or outwards.
+% does not necessarily reflect whether a face is poining inwards or outwards.
 
 % For concave particles, we can generate a tetrahedral mesh of the
 % particle from the surface mesh and use one of the non-parallel edges
@@ -153,14 +149,19 @@ end
 
 Pmax=1:length(P);	% List of vertices indices
 
-if ischar(varargin{1})==false && isempty(varargin{1})==false
-	rng(seed)		% Fixed seed to achieve reproducible (random) results
-end
+% if nargin>5
+% 	if ischar(varargin{1})==false && isempty(varargin{1})==false
+% 		rng(seed)		% Fixed seed to achieve reproducible (random) results
+% 	end
+% end
 
-Vertices=Pmax(randperm(length(Pmax)));	% Shuffle indices of vertices (random-like selection)
+Vertices=Pmax(randperm(length(Pmax)));	% Shuffle indices of vertices (random selection)
 % Vertices=Pmax;						% Ordered indices of vertices (ordered selection)
 
 tol=rmin/1000;	% Tolerance so that the starting vertex is considered outside the sphere
+
+
+%% TODO: Define clump, mesh as classes, not structs.
 
 %% Build "mesh" structure
 mesh=struct;
@@ -215,7 +216,7 @@ for k=Pmax
 	
 	% 	scatter3(x, y, z,'r') % Uncomment to visualise each point that is used to generate spheres
 	
-	while reachedMaxRadius==false % i.e. while the sphere has not touched the particle surface
+	while reachedMaxRadius==false % while the sphere has not reached the particle surface
 		sphMin=1e15; % Minimum value of potential function
 		while sphMin>-tol
 			xC=x+r*n(1);
@@ -226,9 +227,11 @@ for k=Pmax
 			sph=(distance/r).^2-1;												% Value of spherical potential function (negative for points inside the sphere)
 			sphMin=min(sph);
 			
-			r=r+rmin; % Radius for next step
+			r=r+rstep; % Grow radius for next step
 			
-			%% TODO: Maybe here check that if the normal is pointing outwards, we inverse the sign of n(1), n(2), n(3). 
+			%% FIXME: Maybe instead of calculating the distance to all vertices, calculate the distance to all faces!!!
+			
+			%% TODO: Maybe here check that if the normal is pointing outwards, we inverse the sign of n(1), n(2), n(3).
 			%% This can be done either when we reach a maximum number of iterations or more safely, if the distance decreases instead of increasing, for every iteration.
 		end
 		reachedMaxRadius=true;
@@ -242,11 +245,11 @@ for k=Pmax
 		
 		vAB=[pointInside(1)-x, pointInside(2)-y, pointInside(3)-z]; % Vector from starting point to point with min distance to the center of the sphere
 		vAD=dot(vAB,n)/norm(n);										% Projection of previous vector on the current normal vector
-% 		theta =atan2( vecnorm(cross(n,vAB,2),2,2) , dot(n,vAB,2) ); % Angle between vAB and normal vector n
+		% 		theta =atan2( vecnorm(cross(n,vAB,2),2,2) , dot(n,vAB,2) ); % Angle between vAB and normal vector n
 		
 		AB=norm(vAB);
 		AD=norm(vAD);
-% 		BD=sqrt(AB^2-AD^2);
+		% 		BD=sqrt(AB^2-AD^2);
 		
 		radius=AB^2/AD/2;
 		
@@ -268,44 +271,44 @@ for k=Pmax
 	end
 end
 
-% counter-1
-disp('Sphere generation completed. Plotting spheres...')
-
 [clump.minSphere.centroid, clump.minSphere.radius]=min(clump.radii);
 [clump.maxSphere.centroid, clump.maxSphere.radius]=max(clump.radii);
 clump.numSpheres=length(clump.radii);
 
-%% Plot surface mesh
-figure()
-patch('Faces',F,'Vertices',P,'FaceColor','none','EdgeColor',[0.5,0.5,0.5])
-axis equal
-camlight
-% hL1=camlight('headlight');
-% set(hL1,'style','infinite','position',mesh.centroid*2)
-% set(gca,'visible','off')
-% view(32,28)
-box on; grid on; hold on
-alpha 0.5
-
-%% Plot normals (they should point inwards)
-% quiver3(P(:,1),P(:,2),P(:,3),N(:,1),N(:,2),N(:,3)) % Uncomment to visualise normal vectors of vertices. They should all point inwards
-
-%% Plot spheres
-for j=1:length(clump.radii)
-	[X,Y,Z]=sphere;
-	xSph=X*clump.radii(j);
-	ySph=Y*clump.radii(j);
-	zSph=Z*clump.radii(j);
+%% Plot clump and mesh
+if visualise
+	patch('Faces',F,'Vertices',P,'FaceColor','g','FaceAlpha',0.5,'EdgeColor','none') ;%[0.5,0.5,0.5]
+	axis equal
+	camlight
+	% hL1=camlight('headlight');
+	% set(hL1,'style','infinite','position',mesh.centroid*2)
+	% set(gca,'visible','off')
+	box on; grid on; hold on
+	alpha 0.5
 	
-	color=rand(1,3);
-% 	color='g';
-	xC=clump.positions(j,1);
-	yC=clump.positions(j,2);
-	zC=clump.positions(j,3);
+	%% Plot normals (they should point inwards)
+	% quiver3(P(:,1),P(:,2),P(:,3),N(:,1),N(:,2),N(:,3)) % Uncomment to visualise normal vectors of vertices. They should all point inwards
 	
-	surf(xSph+xC,ySph+yC,zSph+zC,'EdgeColor','none','FaceColor','g','FaceAlpha',1,'FaceColor',color)
+	%% Plot spheres
+	for j=1:length(clump.radii)
+		[X,Y,Z]=sphere;
+		xSph=X*clump.radii(j);
+		ySph=Y*clump.radii(j);
+		zSph=Z*clump.radii(j);
+		
+		color=rand(1,3);
+		% 	color='g';
+		xC=clump.positions(j,1);
+		yC=clump.positions(j,2);
+		zC=clump.positions(j,3);
+		
+		surf(xSph+xC,ySph+yC,zSph+zC,'EdgeColor','none','FaceColor','g','FaceAlpha',1,'FaceColor',color)
+	end
 end
 
+%% Export clump
+% Output is offered in the generic format x_y_z_r. For more specialised
+% formats, try the exportClump module.
 if isempty(output)==false
 	dlmwrite(output, [clump.positions, clump.radii], 'delimiter', ',', 'precision', '%10f')
 end
