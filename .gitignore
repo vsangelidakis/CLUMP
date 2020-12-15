@@ -1,0 +1,8 @@
+examples/Rice___stl_stl_particles/
+*.asv
+*.txt
+
+functions/config.mat
+examples/clumpGenerator_Favier_new_approach.m
+*.m
+README.txt
