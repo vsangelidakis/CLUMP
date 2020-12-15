@@ -9,9 +9,6 @@
 █ █ █ █ █                                                        █ █ █ █ █
 
 
-
-
-
 			FIXME: Remember to amend the name above, here and in the .md file, after we decide on one!
 			CLUmp generator for Multi-sphere Particles
 			a Code Library to generate Universal Multi-spherical particles
@@ -19,11 +16,10 @@
 			TODO: Use Euclidean_3D immediately on voxelated image. Generate a superellipsoid and fill it with a clump!!
 			TODO: Create one more fig, where we 
 			TODO: Maybe show results only from the rice particle? And in the Graphical Abstract fig, show only one of the two particles?
-		
+
 			FIXME: I have updated the context in this file. Remember to pass it also to the .md file!!!
-
-
-
+			FIXME: Rename the functions/modules in the README files, if/when I rename them in the code!!!
+			
 
 █ Contents
   • What CLUMP does
@@ -34,17 +30,17 @@
   • BYOS (Bring Your Own Scripts)!
 
 █ What CLUMP does
-CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like SHAPE. 
+CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like SHAPE (https://github.com/vsangelidakis/SHAPE). 
 
 █ Architectural features
 CLUMP comprises the following modules:
 
 • Generate Clump
   • Favier et al (1999)
-  • Ferellec_and_McDowell (2010)
-  • Euclidean_3D (proposed in this code)
+  • Ferellec and McDowell (2010)
+  • Euclidean 3D (proposed in this code)
 
-• Export_clump
+• Export clump
   • YADE
   • LAMMPS
   • EDEM
