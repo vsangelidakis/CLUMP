@@ -68,9 +68,6 @@ addpath(genpath('functions'));	% Load in-house functions
 addpath(genpath('lib'));		% Load external functions (dependencies)
 addpath(genpath('classes'));	% Load object-oriented architecture
 
-[//]: <> (This is also a comment.)% Generate clumps using the approach of Favier et al (1999)
-[//]: <> (This is also a comment.)xxx
-
 % Generate clumps using the approach of Ferellec and McDowell (2010)
 [mesh, clump]=GenerateClump_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output );
 
