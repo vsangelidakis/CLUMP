@@ -1,5 +1,5 @@
 <p align="center"><img width=50% src="https://github.com/vsangelidakis/CLUMP/blob/master/figures/CLUMP_Logo_Extended.png"></p>
-<h2 align="center">CLUmp generator for Multi-sphere Particles</a></h2>
+<h2 align="center">Code Library for Universal Multi-sphere Particles</a></h2>
 <p align="center">
     <a href="https://github.com/vsangelidakis/CLUMP/commits/master">
     <img src="https://img.shields.io/github/last-commit/vsangelidakis/CLUMP.svg?style=flat-square&logo=github&logoColor=white"
@@ -13,7 +13,7 @@
     <a href="https://opensource.org/licenses/GPL-3.0">
     <img src="https://img.shields.io/badge/license-GPL-blue.svg"
          alt="License">
-    <a href="https://twitter.com/intent/tweet?text=CLUmp generator for Multi-sphere Particles: &url=https%3A%2F%2Fgithub.com%2Fvsangelidakis%2FCLUMP">
+    <a href="https://twitter.com/intent/tweet?text=Code Library for Universal Multi-sphere Particles: &url=https%3A%2F%2Fgithub.com%2Fvsangelidakis%2FCLUMP">
     <img src="https://img.shields.io/twitter/url/https/github.com/vsangelidakis/CLUMP.svg?style=flat-square&logo=twitter"
          alt="GitHub tweet">
 </p>
@@ -66,16 +66,16 @@ This example demonstrates different approaches to generate clumps for the same t
 ```Matlab
 addpath(genpath('functions'));	% Load in-house functions
 addpath(genpath('lib'));		% Load external functions (dependencies)
-addpath(genpath('classes'));	% Load object-oriented architecture				%% FIXME: To be reviewed.
+addpath(genpath('classes'));	% Load object-oriented architecture
 
-% Generate clumps using the approach of Favier et al (1999)
-xxx
+[//]: <> (This is also a comment.)% Generate clumps using the approach of Favier et al (1999)
+[//]: <> (This is also a comment.)xxx
 
 % Generate clumps using the approach of Ferellec and McDowell (2010)
-[mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output );
+[mesh, clump]=GenerateClump_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output );
 
 % Generate clumps using the approach proposed in this code, involving the Euclidean transform of 3D images
-[mesh, clump]=clumpGenerator_Euclidean_3D( stlFile, N, rMin, div, overlap, output );
+[mesh, clump]=GenerateClump_Euclidean_3D( stlFile, N, rMin, div, overlap, output );
 ```
 
 New users are advised to start from running the available examples in the [examples](examples) folder, to get familiarised with the syntax and functionalities of CLUMP.
@@ -84,7 +84,6 @@ New users are advised to start from running the available examples in the [examp
 CLUMP uses several external functions available within the Matlab FEX community. We want to acknowledge the following contributions:
   - Qianqian Fang - [Iso2Mesh](https://uk.mathworks.com/matlabcentral/fileexchange/68258-iso2mesh)
   - Luigi Giaccari - [Surface Reconstruction From Scattered Points Cloud](https://www.mathworks.com/matlabcentral/fileexchange/63730-surface-reconstruction-from-scattered-points-cloud)
-  - Dirk-Jan Kroon - [Patch Normals](https://uk.mathworks.com/matlabcentral/fileexchange/24330-patch-normals)
   - Pau Micó - [stlTools](https://uk.mathworks.com/matlabcentral/fileexchange/51200-stltools)
   - Anton Semechko - [Rigid body parameters of closed surface meshes](https://uk.mathworks.com/matlabcentral/fileexchange/48913-rigid-body-parameters-of-closed-surface-meshes)
 

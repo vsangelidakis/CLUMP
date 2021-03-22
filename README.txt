@@ -9,18 +9,6 @@
 █ █ █ █ █                                                        █ █ █ █ █
 
 
-			FIXME: Remember to amend the name above, here and in the .md file, after we decide on one!
-			CLUmp generator for Multi-sphere Particles
-			a Code Library to generate Universal Multi-spherical particles
-				? Which sounds better: multi-spherical or Multi-sphere?
-			TODO: Use Euclidean_3D immediately on voxelated image. Generate a superellipsoid and fill it with a clump!!
-			TODO: Create one more fig, where we 
-			TODO: Maybe show results only from the rice particle? And in the Graphical Abstract fig, show only one of the two particles?
-
-			FIXME: I have updated the context in this file. Remember to pass it also to the .md file!!!
-			FIXME: Rename the functions/modules in the README files, if/when I rename them in the code!!!
-			
-
 █ Contents
   • What CLUMP does
   • Architectural features
@@ -65,10 +53,10 @@ This example demonstrates different approaches to generate clumps for the same t
 
 addpath(genpath('functions'));	% Load in-house functions
 addpath(genpath('lib'));		% Load external functions (dependencies)
-addpath(genpath('classes'));	% Load object-oriented architecture					%% FIXME: To be reviewed.
+addpath(genpath('classes'));	% Load object-oriented architecture
 
-% Generate clumps using the approach of Favier et al. (1999)
-xxx
+[//]: <> (This is also a comment.)% Generate clumps using the approach of Favier et al. (1999)
+[//]: <> (This is also a comment.)xxx
 
 % Generate clumps using the approach of Ferellec and McDowell (2010)
 [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output );
@@ -82,7 +70,6 @@ New users are advised to start from running the available examples in the [examp
 CLUMP uses several external functions available within the Matlab FEX community. We want to acknowledge the work of the following contributions:
   • Qianqian Fang - [Iso2Mesh](https://uk.mathworks.com/matlabcentral/fileexchange/68258-iso2mesh)
   • Luigi Giaccari - [Surface Reconstruction From Scattered Points Cloud](https://www.mathworks.com/matlabcentral/fileexchange/63730-surface-reconstruction-from-scattered-points-cloud)
-  • Dirk-Jan Kroon - [Patch Normals](https://uk.mathworks.com/matlabcentral/fileexchange/24330-patch-normals)
   • Pau Micó - [stlTools](https://uk.mathworks.com/matlabcentral/fileexchange/51200-stltools)
   • Anton Semechko - [Rigid body parameters of closed surface meshes](https://uk.mathworks.com/matlabcentral/fileexchange/48913-rigid-body-parameters-of-closed-surface-meshes)
 
