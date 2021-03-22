@@ -23,18 +23,18 @@ CLUMP is a collection of scripts to generate multi-sphere particles of overlappi
 █ Architectural features
 CLUMP comprises the following modules:
 
-• Generate Clump
+• GenerateClump
   • Favier et al (1999)
   • Ferellec and McDowell (2010)
   • Euclidean 3D (proposed in this code)
 
-• Export clump
+• ExportClump
   • YADE
   • LAMMPS
   • EDEM
   • PFC3D
 
-• Characterise Clump
+• CharacteriseClump
   • Surface extraction
 
 █ File tree
