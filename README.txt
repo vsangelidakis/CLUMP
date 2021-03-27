@@ -35,7 +35,7 @@ CLUMP comprises the following modules:
   • PFC3D
 
 • CharacteriseClump
-  • Surface extraction
+  • Surface extractio
 
 █ File tree
 • __CLUMP__
