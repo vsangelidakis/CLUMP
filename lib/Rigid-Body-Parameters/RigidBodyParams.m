@@ -128,8 +128,6 @@ RBP.eigs=diag(D)';
 RBP.moments=[m000 m100 m010 m001 m110 m101 m011 m200 m020 m002];
 
 
-
-
 function TR=CheckFormat(TR)
 % Verify that input format is correct and retrieve face and vertex lists
 
@@ -173,10 +171,12 @@ if flag
         error('Specified face list is invalid')
     end
 end
+
 if max(Tri(:))~=size(X,1) || numel(unique(Tri(:)))~=size(X,1)
     warning('Some vertices are not referenced by the triangulation')
 end
-if sum(isinf(X(:)) | isnan(X(:)))>0
+
+if ~all(isfinite(X(:)))
     error('Vertex list contains one or more undefined entries')
 end
     
@@ -185,13 +185,13 @@ if flag
     try
         TR=triangulation(Tri,X);
     catch
-        TR=TriRep(Tri,X); %#ok<*REMFF1>
+        TR=TriRep(Tri,X);  %#ok<*DTRIREP>
     end
 end
+
 EA=edgeAttachments(TR,edges(TR));
-try
-    EA=cell2mat(EA); %#ok<*NASGU>
-catch
+Nef=cellfun(@length,EA);
+if any(Nef~=2)
     error('Input mesh either contains boundaries or is non-manifold')
 end
 
