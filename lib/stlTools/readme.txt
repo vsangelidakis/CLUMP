@@ -12,5 +12,4 @@ stlDelVerts:	removes a list of vertices from STL files
 stlAddVerts:	adds the new vertices from a list (and consequently, new faces) to a STL object
 stlPlot:	is an easy way to plot an STL object
 stlDemo:	is a collection of examples about how to use stlTools
-femur_binary:	is an ascii STL sample used in 'stlDemo'. It is published by Eric Johnson (http://www.mathworks.com/matlabcentral/fileexchange/22409-stl-file-reader). Copyright (c) 2011, Eric Johnson.
 sphere_ascii:	is a binary STL sample
