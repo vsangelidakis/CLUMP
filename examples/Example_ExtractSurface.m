@@ -30,7 +30,7 @@ fv.faces=faces;
 fv.vertices=vertices;
 
 %% Write .stl particle with the generated surface mesh (optional)
-% stlWrite('Clump_Surface.stl',fv) 
+stlWrite('Clump_Surface.stl',fv) 
 
 %% PART 2: SHAPE
 % Characterise the morphology of the surface mesh using SHAPE

@@ -1,6 +1,6 @@
-function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, varargin )
+function [mesh, clump]=GenerateClump_Ferellec_McDowell( inputGeom, dmin, rmin, rstep, pmax, varargin )
 %% Implementation of the clump-generation concept proposed by Ferellec and McDowell (2010) [1]
-% 2020 © V. Angelidakis, S. Nadimi, M. Otsubo, S. Utili.
+% 2021 © V. Angelidakis, S. Nadimi, M. Otsubo, S. Utili.
 % [1] Ferellec, J.F. and McDowell, G.R., 2010. Granular Matter, 12(5), pp.459-467. DOI 10.1007/s10035-010-0205-8
 
 %% The main concept of this methodology:
@@ -33,7 +33,14 @@ function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rs
 %			numerical instabilities when using DEM.
 
 %% INPUT:
-%	- stlFile:	Directory of stl file, used to generate spheres
+%	-inputGeom:	Input geometry, given in one of the formats below:
+%				1. Directory of .stl file (for surface meshes)
+%				2. Directory of .mat file (for binary voxelated images)
+%				3. Struct with fields {vertices,faces} (for surface meshes)
+%				4. Struct with fields {img,voxel_size} (for binary voxelated images)
+%				   where
+%					- img:			[Nx x Ny x Nz] voxelated image
+%					- voxel_size:	[1x3] voxel size in Cartesian space
 %
 %	- dmin	:	Minimum allowed distance between new vertex of the surface
 %				mesh and existing spheres. If left zero, this distance is
@@ -95,12 +102,13 @@ function [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rs
 %
 
 %% EXAMPLE
-% stlFile='Hexahedron_Fine_Mesh.stl';	dmin=0.01;	rmin=0.01; rstep=0.001;	pmax=1.0;	seed=5;	output='hexaFine.txt'; visualise=true;
-% [mesh, clump]=clumpGenerator_Ferellec_McDowell( stlFile, dmin, rmin, rstep, pmax, seed, output, visualise );
+% inputGeom='Hexahedron_Fine_Mesh.stl';	dmin=0.01;	rmin=0.01; rstep=0.001;	pmax=1.0;	seed=5;	output='hexaFine.txt'; visualise=true;
+% [mesh, clump]=clumpGenerator_Ferellec_McDowell( inputGeom, dmin, rmin, rstep, pmax, seed, output, visualise );
 
 %% TODO
 % We can calculate the centroid/volume/inertia of the clump and compare it to that of the actual particle
 % Ensure the vertex normals are pointing inwards for concave meshes (so far this is done only for convex meshes)
+% Add support for input tiff stacks (either binarised or we can binarise them upon input)
 
 %% Define variables based on the type of the optional parameters (varargin)
 output=[];
@@ -122,38 +130,78 @@ end
 %% Import Dependencies
 addpath(genpath('../lib')) % Add path to dependencies (external codes)
 
-[P,F,~] = stlRead(stlFile);
+%% Configure input particle geometry based on the variable type of inputGeom
+switch class(inputGeom)
+	case 'char'
+		if strcmp(inputGeom(end-3:end),'.stl') % input file is .stl (surface mesh)
+			[P,F,~] = stlRead(inputGeom);
+		elseif strcmp(inputGeom(end-3:end),'.mat')  % input file is .mat (voxelated image)
+			vox=load(inputGeom);
+			temp=fieldnames(vox); temp=temp{1}; vox=vox.(temp); clear temp;
+			voxel_size=vox.voxel_size;
+			
+			% TODO: Add error, if the fields: vox.img and vox.voxel_size do not exist
+			
+			opt=2; %see vol2mesh function in iso2mesh
+			isovalues=[]; %see vol2mesh function in iso2mesh
+			[P,F]=v2s(vox.img,isovalues,opt,'cgalmesh');
+			P=P*voxel_size(1,1);
+		else
+			error('Not recognised inputGeom format.')
+		end
+	case 'struct'
+		if isfield(inputGeom,'Vertices') || isfield(inputGeom,'vertices')  % input file is struct containing surface mesh
+			try P=inputGeom.Vertices; catch, P=inputGeom.vertices; end
+			try F=inputGeom.Faces;    catch, F=inputGeom.faces;	  end
+			TR=triangulation(F,P); %N=vertexNormal(TR);			
+		elseif isfield(inputGeom,'img')  % input file is struct containing voxelated image
+			voxel_size=inputGeom.voxel_size;
+			
+			opt=2; %see vol2mesh function in iso2mesh
+			isovalues=[]; %see vol2mesh function in iso2mesh
+			[P,F]=v2s(inputGeom.img,isovalues,opt,'cgalmesh');
+			P=P*voxel_size(1,1);
+			
+			TR=triangulation(F,P); %N=vertexNormal(TR);
+		else
+			error('Not recognised inputGeom format.')
+		end
+		
+	case 'triangulation'		% TODO: COMPLETE THIS HERE AND REPLICATE IT IN THE EUCLIDEAN FUNCTION
+		if isfield(inputGeom,'Points') || isfield(inputGeom,'points')  % input file is a triangulation object
+			N=vertexNormal(inputGeom);
+			% 			[RBP,~]=RigidBodyParams(inputGeom);
+		else
+			error('Not recognised inputGeom format.')
+		end
+		
+	otherwise
+		error('Not recognised inputGeom format.')
+end
 
+% Create struct with fields faces/vertices (patch format)
 FV=struct();
 FV.vertices=P;
 FV.faces=F;
 
-N=patchnormals(FV);	%% FIXME: Revisit to replace this with Matlab's in-house function to calculate normals of triangulations. To this, I can transform FV into a triangulation object, instead of a "patch" style struct. Also, remove patchnormals from the dependencies.
+% Ensure all face normals are oriented coherently, pointing outwards
+TR2=triangulation(FV.faces,FV.vertices);
+[TR2_fix,~]=ConsistentNormalOrientation(TR2); %numInvFaces
+FV.faces=TR2_fix.ConnectivityList;
+
+% Invert normals to point inwards, to grow tangent spheres
+N=-TR2_fix.vertexNormal;
+
+% Calculate Rigid Body Parameters (RBP): Centroid, Volume, Inertia Tensor
 [RBP,~]=RigidBodyParams(FV);
-% VisualizeLocalFrame(TR,3)
 
-%% Ensure the vertex normals are pointing inwards
-%% ATTENTION: This approach is guaranteed to work only for convex polyhedra with manifold meshes.
-% For concave polyhedra, the vector of a random vertex to the centroid
-% does not necessarily reflect whether a face is poining inwards or outwards.
+% Visualise the normal vectors
+% quiver3(P(:,1),P(:,2),P(:,3),N(:,1)*5,N(:,2)*5,N(:,3)*5); axis equal
 
-% For concave particles, we can generate a tetrahedral mesh of the
-% particle from the surface mesh and use one of the non-parallel edges
-% of the adjacent tetrahedron to specify the inwards direction.
-
-for i=1:size(P,1)
-	if dot(P(i,:)-RBP.centroid,N(i,:))>0
-		N(i,:)=-N(i,:);
-	end
-end
+% P=P-RBP.centroid; % Center the particle to its centroid. TODO: Do we want
+% to do this? If there is interest, we can have a boolean variable for it.
 
 Pmax=1:length(P);	% List of vertices indices
-
-% if nargin>5
-% 	if ischar(varargin{1})==false && isempty(varargin{1})==false
-% 		rng(seed)		% Fixed seed to achieve reproducible (random) results
-% 	end
-% end
 
 Vertices=Pmax(randperm(length(Pmax)));	% Shuffle indices of vertices (random selection)
 % Vertices=Pmax;						% Ordered indices of vertices (ordered selection)
@@ -229,9 +277,8 @@ for k=Pmax
 			
 			r=r+rstep; % Grow radius for next step
 			
-			%% FIXME: Maybe instead of calculating the distance to all vertices, calculate the distance to all faces!!!
-			
-			%% TODO: Maybe here check that if the normal is pointing outwards, we inverse the sign of n(1), n(2), n(3).
+			%% TODO: Maybe instead of calculating the distance to all vertices, calculate the distance to all faces!
+			%% TODO: Maybe add a check here for excessive numbers of iterations, to ensure that if the normal is pointing outwards, we need to invert the sign of n(1), n(2), n(3) and start from the initial points on the surface.
 			%% This can be done either when we reach a maximum number of iterations or more safely, if the distance decreases instead of increasing, for every iteration.
 		end
 		reachedMaxRadius=true;
@@ -275,9 +322,11 @@ end
 [clump.maxSphere.centroid, clump.maxSphere.radius]=max(clump.radii);
 clump.numSpheres=length(clump.radii);
 
-%% Plot clump and mesh
+%% Plot clump and mesh (optional)
 if visualise
-	patch('Faces',F,'Vertices',P,'FaceColor','g','FaceAlpha',0.5,'EdgeColor','none') ;%[0.5,0.5,0.5]
+	% 	patch('Faces',F,'Vertices',P,'FaceColor','g','FaceAlpha',0.15,'EdgeColor','none','EdgeAlpha',0.1) ;%[0.5,0.5,0.5]
+	% 	patch('Faces',F,'Vertices',P,'FaceColor','g','FaceAlpha',0.1,'EdgeColor','none','EdgeAlpha',0.15);
+	patch('Faces',F,'Vertices',P,'FaceColor','g','FaceAlpha',0.2,'EdgeColor','none','EdgeAlpha',0.4); %[0,0.4,0]
 	axis equal
 	camlight
 	% hL1=camlight('headlight');
@@ -306,7 +355,7 @@ if visualise
 	end
 end
 
-%% Export clump
+%% Export clump (optional)
 % Output is offered in the generic format x_y_z_r. For more specialised
 % formats, try the exportClump module.
 if isempty(output)==false
