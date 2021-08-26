@@ -4,15 +4,18 @@ function [mesh, clump]=GenerateClump_Ferellec_McDowell( inputGeom, dmin, rmin, r
 % [1] Ferellec, J.F. and McDowell, G.R., 2010. Granular Matter, 12(5), pp.459-467. DOI 10.1007/s10035-010-0205-8
 
 %% The main concept of this methodology:
-% 1. We import the surface mesh of a particle.
-% 2. We calculate the normal of each vertex pointing inwards.
-% 3. For a random vertex on the particle surface, we start creating
+% 1. We import the geometry of a particle either as a surface mesh or a
+%	 voxelated 3D image.
+% 2. If a voxelated image is given, we transform it into a surface mesh,
+%	 providing its vertices and faces (vertex connectivity).
+% 3. We calculate the normal of each vertex pointing inwards.
+% 4. For a random vertex on the particle surface, we start creating
 %	 tangent spheres with incremental radii along the vertex normal,
 %	 starting from 'rmin', with a step of 'rstep', until they meet the
 %	 surface of the particle.
-% 4. We select a new vertex randomly, which has a distance larger
+% 5. We select a new vertex randomly, which has a distance larger
 %    than 'dmin' from the existing spheres and do the same.
-% 5. When a percentage 'pmax' of all the vertices is used to generate
+% 6. When a percentage 'pmax' of all the vertices is used to generate
 %    spheres, the generation procedure stops.
 % -  An optional 'seed' parameter is introduced, to generate reproducible
 %    clumps.
@@ -153,28 +156,22 @@ switch class(inputGeom)
 		if isfield(inputGeom,'Vertices') || isfield(inputGeom,'vertices')  % input file is struct containing surface mesh
 			try P=inputGeom.Vertices; catch, P=inputGeom.vertices; end
 			try F=inputGeom.Faces;    catch, F=inputGeom.faces;	  end
-			TR=triangulation(F,P); %N=vertexNormal(TR);			
 		elseif isfield(inputGeom,'img')  % input file is struct containing voxelated image
 			voxel_size=inputGeom.voxel_size;
-			
 			opt=2; %see vol2mesh function in iso2mesh
 			isovalues=[]; %see vol2mesh function in iso2mesh
 			[P,F]=v2s(inputGeom.img,isovalues,opt,'cgalmesh');
 			P=P*voxel_size(1,1);
-			
-			TR=triangulation(F,P); %N=vertexNormal(TR);
 		else
 			error('Not recognised inputGeom format.')
 		end
-		
 	case 'triangulation'		% TODO: COMPLETE THIS HERE AND REPLICATE IT IN THE EUCLIDEAN FUNCTION
-		if isfield(inputGeom,'Points') || isfield(inputGeom,'points')  % input file is a triangulation object
-			N=vertexNormal(inputGeom);
-			% 			[RBP,~]=RigidBodyParams(inputGeom);
-		else
-			error('Not recognised inputGeom format.')
+		try
+			F=inputGeom.ConnectivityList;
+			P=inputGeom.Points;
+		catch
+			error('Not recognised -triangulation- format.')
 		end
-		
 	otherwise
 		error('Not recognised inputGeom format.')
 end
@@ -182,10 +179,9 @@ end
 % Create struct with fields faces/vertices (patch format)
 FV=struct();
 FV.vertices=P;
-FV.faces=F;
 
 % Ensure all face normals are oriented coherently, pointing outwards
-TR2=triangulation(FV.faces,FV.vertices);
+TR2=triangulation(F,P);
 [TR2_fix,~]=ConsistentNormalOrientation(TR2); %numInvFaces
 FV.faces=TR2_fix.ConnectivityList;
 
