@@ -24,6 +24,7 @@
   <a href="#simple-example">Simple example</a> •
   <a href="#credits">Credits</a> •
   <a href="#byos-bring-your-own-scripts">BYOS</a>
+  <a href="#acknowledging-clump">Acknowledging CLUMP</a>
 </p>
 
 ---
@@ -88,5 +89,10 @@ These external dependencies are added within the source code of CLUMP, to provid
 
 ## BYOS (Bring Your Own Scripts)!
 If you enjoy using CLUMP, you are welcome to require the implementation of new clump-generation approaches and features or even better contribute and share your implementations. CLUMP was created to provide a comparison of different methods, by collecting them in one place and we share this tool hoping that members of the community will find it useful. So, feel free to expand the code, propose improvements and report issues.
+
+## Acknowledging CLUMP
+Angelidakis, V., Nadimi, S., Otsubo, M. and Utili, S., 2021. CLUMP: A Code Library to generate Universal Multi-sphere Particles. SoftwareX 15, p.100735.
+
+[Download BibTeX entry](https://github.com/vsangelidakis/CLUMP/blob/master/CITATION.bib)
 
 <h4 align="center">2021 © Vasileios Angelidakis, Sadegh Nadimi, Masahide Otsubo, Stefano Utili. <br/> Newcastle University, UK & The University of Tokyo, Japan</a></h4>

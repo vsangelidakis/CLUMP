@@ -75,6 +75,9 @@ These external dependencies are added within the source code of CLUMP, to provid
 █ BYOS (Bring Your Own Scripts)!
 If you enjoy using CLUMP, you are welcome to require the implementation of new clump-generation approaches and features or even better contribute and share your implementations. CLUMP was created to provide a comparison of different methods, by collecting them in one place and we share this tool hoping that members of the community will find it useful. So, feel free to expand the code, propose improvements and report issues.
 
+█ Acknowledging CLUMP
+Angelidakis, V., Nadimi, S., Otsubo, M. and Utili, S., 2021. CLUMP: A Code Library to generate Universal Multi-sphere Particles. SoftwareX 15, p.100735.
+
 █ Copyright
 2021 © Vasileios Angelidakis [1], Sadegh Nadimi [1], Masahide Otsubo [2], Stefano Utili [1]
 [1] Newcastle University, UK
