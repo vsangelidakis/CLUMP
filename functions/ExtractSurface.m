@@ -72,34 +72,7 @@ for i=1:size(spheresList,1)
 	[S{i}.vertices,S{i}.faces]=makeSphere(x(i),y(i),z(i),r(i),N_sphere);
 end
 
-%% Perform contact detection to detect and delete points of each sphere that are included in other spheres, in order to get only the points on the surface of the clump
-for i=1:size(interactions,1)
-	
-	% For interaction [sphere1,sphere2], check which vertices of sphere1 are inside sphere2
-	for j=size(S{1,interactions(i,1)}.vertices,1):-1:1 % start deleting from end to start
-		if spherePotential(S{1,interactions(i,1)}.vertices(j,:),spheresList(interactions(i,2),:),true)
-			v=S{1,interactions(i,1)}.vertices(j,:);
-			% 			scatter3(v(:,1),v(:,2),v(:,3),20,'b','filled')
-			S{1,interactions(i,1)}.vertices(j,:)=[];
-		end
-	end
-	
-	% For interaction [sphere1,sphere2], check which vertices of sphere2 are inside sphere1
-	for j=size(S{1,interactions(i,2)}.vertices,1):-1:1 % start deleting from end to start
-		if spherePotential(S{1,interactions(i,2)}.vertices(j,:),spheresList(interactions(i,1),:),true)
-			v=S{1,interactions(i,2)}.vertices(j,:);
-			% 			scatter3(v(:,1),v(:,2),v(:,3),20,'b','filled')
-			S{1,interactions(i,2)}.vertices(j,:)=[];
-		end
-	end
-	
-end
-% scatter3(S{1,1}.vertices(:,1),S{1,1}.vertices(:,2),S{1,1}.vertices(:,3),'filled')
-% scatter3(S{1,2}.vertices(:,1),S{1,2}.vertices(:,2),S{1,2}.vertices(:,3),'filled')
-
-
 %% Calculate points on the intersection of each pair of interacting spheres
-vertices=[];
 for i=1:size(interactions,1)
 	n=spheresList(interactions(i,2),1:3)-spheresList(interactions(i,1),1:3); % (not normalised) normal vector of each interaction
 	
@@ -110,7 +83,7 @@ for i=1:size(interactions,1)
 	r2=spheresList(interactions(i,2),4); % radius of sphere2
 	
 	h = sqrt( (2*r1*d)^2 - (r1^2 + d^2 - r2^2)^2 )/(2*d); % Radius of intersection circle
-	alph=acos( (r1^1+d^2-r2^2) / (2*r1*d) );
+	alph=acos( (r1^2+d^2-r2^2) / (2*r1*d) );
 	h1=r1*(1-cos(alph));
 	
 	C=spheresList(interactions(i,1),1:3)+n*(r1-h1); % Contact point
@@ -126,36 +99,54 @@ for i=1:size(interactions,1)
 	% 	dot(n1,n3)
 	
 	% Generate points of intersection circle
-	a=-2*pi:pi/(N_circle/4):2*pi;
+	a = -pi:pi/(N_circle/2):pi;
 	% For each circle point.
 	px = C(1) + h * (n1(1) * cos(a) + n2(1) * sin(a));
 	py = C(2) + h * (n1(2) * cos(a) + n2(2) * sin(a));
 	pz = C(3) + h * (n1(3) * cos(a) + n2(3) * sin(a));
 	
-	if imag(px(1,1))>0
-		% 		i
-		break
-	end
 	
 	%% TODO: Turn px, py, pz calculation into matrix operation
-	
 	% 	if ~isnan(px(1,1))
-	S{1,interactions(i,1)}.circlevertices=[px' py' pz']; %% FIXME: This line is wrong! S{1,i} instead?
+	S{1,interactions(i,1)}.circlevertices = [px' py' pz']; %% FIXME: This line is wrong! S{1,i} instead?
+	S{1,interactions(i,1)}.vertices = [S{1,interactions(i,1)}.vertices;S{1,interactions(i,1)}.circlevertices];
 	% 	S{1,i}.circlevertices=[px' py' pz']; %% FIXME: This line is wrong! S{1,i} instead?
-	
-	vertices=[vertices;[px' py' pz']];
 	% 		scatter3(px,py,pz,20,'filled','r')
 	% 	end
-	
 	%% TODO: Instead of adding all vertices apriori, I could first check that the new vertices are not inside existing spheres. They can be on (i.e. potential=0) but not zero. To this, I need a new contact detection, allowing zero
 	
 end
 
+%% Perform contact detection to detect and delete points of each sphere
+% that are included in other spheres, in order to get only the points
+% on the surface of the clump
+for i=1:size(interactions,1)
+	
+	% For interaction [sphere1,sphere2], check which vertices of sphere1 are inside sphere2
+	for j=size(S{1,interactions(i,1)}.vertices,1):-1:1 % start deleting from end to start
+		if spherePotential(S{1,interactions(i,1)}.vertices(j,:),spheresList(interactions(i,2),:),true)
+			S{1,interactions(i,1)}.vertices(j,:)=[];
+		end
+	end
+	
+	% For interaction [sphere1,sphere2], check which vertices of sphere2 are inside sphere1
+	for j=size(S{1,interactions(i,2)}.vertices,1):-1:1 % start deleting from end to start
+		if spherePotential(S{1,interactions(i,2)}.vertices(j,:),spheresList(interactions(i,1),:),true)
+			S{1,interactions(i,2)}.vertices(j,:)=[];
+		end
+	end
+	
+end
+% scatter3(S{1,1}.vertices(:,1),S{1,1}.vertices(:,2),S{1,1}.vertices(:,3),'filled')
+% scatter3(S{1,2}.vertices(:,1),S{1,2}.vertices(:,2),S{1,2}.vertices(:,3),'filled')
+
+vertices = [];
 %% Collect vertices from all spheres in one variable
 for i=1:size(S,2)
-	vertices=[vertices;S{1,i}.vertices];
+	vertices = [vertices;S{1,i}.vertices];
 end
-vertices = real(unique(vertices,'rows')); % FIXME: Come back to check when we need the real() function
+vertices = real(unique(vertices,'rows'));
+% FIXME: Come back to check when we need the real() function
 
 %% Generate mesh using the Crust algorithm (Amenta et al, 1999)
 % p=vertices; %% TODO: Remove the duplication: Keep only vertices variable
@@ -186,12 +177,11 @@ function inContact=sphereContact(sphere1,sphere2)
 % sphere2:	[1 x 4] [x,y,z,r]:	test sphere 2
 
 d0=norm(sphere2(1:3)-sphere1(1:3)); % Centroidal distance of the spheres
-if d0<=(sphere1(4)+sphere2(4))
+if d0 < (sphere1(4)+sphere2(4)) && d0 > abs(sphere1(4)-sphere2(4))
 	inContact=true;
 else
 	inContact=false;
 end
-% inContact=sqrt( ( (sphere(1)-point(1))^2 + (sphere(2)-point(2))^2 + (sphere(3)-point(3))^2 )/(sphere(4))^2 ) - 1 <= 0;
 end
 
 
