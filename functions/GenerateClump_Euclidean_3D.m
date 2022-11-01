@@ -24,6 +24,7 @@ function [mesh, clump]=GenerateClump_Euclidean_3D( inputGeom, N, rMin, div, over
 % rMin:		(0,inf)  Larger rMin will lead to a smaller number of spheres
 % div:		(5,inf]  Larger div will lead to better shape resolution in voxel space
 % overlap:	[0,1)	 Larger overlap will lead to larger spheres overall
+% rMax_ratio (0,1]   Larger rMax_ratio will lead to larger spheres
 
 %% INPUT:
 %	-inputGeom:	Input geometry, given in one of the formats below:
@@ -57,8 +58,12 @@ function [mesh, clump]=GenerateClump_Euclidean_3D( inputGeom, N, rMin, div, over
 %
 %	-visualise: Whether to plot the clump and mesh (optional)*.
 %
-% * varargin can contain either of the optional variables "output",
-% "visualise" or else: output=varargin{1}; visualise=varargin{2}.
+%	-rMax_ratio: limit the maximum sphere radius to a ratio of the radius of 
+%				the largest inscribed circle (optional)*.
+%
+% * varargin can contain any of the optional variables "output",
+% "visualise", "rMax_ratio" or else: output=varargin{1}; visualise=varargin{2}, 
+% visualise=varargin{3}.
 
 %% OUTPUT:
 %	- mesh	:	structure containing all relevant parameters of input polyhedron
@@ -90,12 +95,15 @@ function [mesh, clump]=GenerateClump_Euclidean_3D( inputGeom, N, rMin, div, over
 %% Define variables based on the type of the optional parameters (varargin)
 output=[];
 visualise=false;
+rMax_ratio=1;
 for i=1:length(varargin)
 	switch class(varargin{i})
 		case 'char'
 			output=varargin{i};
 		case 'logical'
 			visualise=varargin{i};
+        case 'double'
+			rMax_ratio=varargin{i};
 		otherwise
 			error('Wrong optional parameter type.')
 	end
@@ -241,19 +249,22 @@ centroid=stats.Centroid; % Centroid of the initial particle
 
 counter=1;
 intersection=img;
+edtImage = bwdist(~intersection);
+rMax = rMax_ratio*max(edtImage(:));
 
 for k=1:N %N:numberofspheres
 	edtImage = bwdist(~intersection);	% Euclidean map
-	radius = max(edtImage(:));			% Inradius in voxel units
-	
+	rInscribed = max(edtImage(:));	% rInscribed in voxel units
+    radius = min(rMax,rInscribed);	% check to see if rMax or rInscribed is critical
+
 	% Note: rMin is given in Cartesian units, not in voxel units, hence the
 	% multiplication with the voxel size below
-	if radius*voxel_size(1,1)<rMin % Break the loop if the minimum radius has been met using less than N spheres
+    if radius*voxel_size(:)<rMin % Break the loop if the minimum radius has been met using less than N spheres
 		warning(['The mimimum radius rMin=',num2str(rMin),' has been met using ', num2str(k-1),' spheres'])
 		break
 	end
 	
-	[yCenter, xCenter, zCenter]= ind2sub(size(intersection),find(edtImage == radius)); % Center in voxel units
+	[yCenter, xCenter, zCenter]= ind2sub(size(intersection),find(edtImage == rInscribed)); % Center in voxel units
 	
 	% Sometimes, more than 1 sphere with the same inradius can emerge.
 	% Choose the most/least distant sphere to the centroid of the particle.
@@ -274,7 +285,7 @@ for k=1:N %N:numberofspheres
 	
 	clump.positions(counter,:)=[yC,xC,zC]*voxel_size(1,1)+[aveX,aveY,aveZ]; % Here we add [aveX,aveY,aveZ] to return to the initial coordinate system
 	clump.radii(counter,1)=radius*voxel_size(1,1);
-	counter=counter+1;
+    counter=counter+1;
 end
 
 [clump.minSphere.centroid, clump.minSphere.radius]=min(clump.radii);
