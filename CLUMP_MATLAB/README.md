@@ -30,15 +30,43 @@
 ---
 
 ## What CLUMP does
-CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, which approximate target geometries. Multi-spheres (a.k.a. clumps) are popular in numerical simulations using the Discrete Element Method (DEM), but these geometric object can find applications in a wider perspective, past numerical modelling. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance using the DEM. To this end, CLUMP offers two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported in various formats, compatible with some of the most prominent DEM codes. Last, the surface of each generated clump can be extracted as a triangulated mesh and saved as an stl file, allowing for a full characterisation of particle morphology, using tools like [SHAPE](https://github.com/vsangelidakis/SHAPE) or 3D-printing of physical particle replicas. CLUMP was initially developed in MATLAB and has now been fully translated in Python. Both implementations will continue to be developed in parallel as the software evolves.
+CLUMP is a collection of scripts to generate multi-sphere particles of overlapping or non-overlapping spheres, to approximate target geometries. The motivation behind developing CLUMP stemmed from the need to compare different clump-generation techniques, both in terms of particle morphology and mechanical performance. To this, CLUMP offers (to date) two existing and well established clump-generation techniques and proposes a new one. The generated clumps can be exported to various formats, compatible with some of the most prominent DEM codes. Last, the surface of each created clump can be extracted as a triangulated mesh, allowing for a full characterisation of particle morphology, using tools like [SHAPE](https://github.com/vsangelidakis/SHAPE).
+
+## Architectural features
+CLUMP comprises the following modules:
+
+- __GenerateClump__
+  - Favier et al (1999)
+  - Ferellec and McDowell (2010)
+  - Euclidean 3D (proposed in this code)
+
+- __ExportClump__
+  - YADE
+  - LAMMPS
+  - EDEM
+  - PFC3D
+
+- __CharacteriseClump__
+  - Surface extraction
+
+## File tree
+- __CLUMP__
+  - [LICENSE](LICENSE)
+  - [README.md](README.md)
+  - [README.txt](README.txt)
+  - __classes__ (Definition of objects)
+  - __examples__
+  - __figures__
+  - __functions__
+  - __lib__ (External dependencies)
+
 
 ## Simple example
 This example demonstrates different approaches to generate clumps for the same target geometry. The variables below are documented within each function.
 
-MATLAB implementation of CLUMP:
 ```Matlab
 addpath(genpath('functions'));	% Load in-house functions
-addpath(genpath('lib'));	% Load external functions (dependencies)
+addpath(genpath('lib'));		% Load external functions (dependencies)
 addpath(genpath('classes'));	% Load object-oriented architecture
 
 % Generate clumps using the approach of Ferellec and McDowell (2010)
@@ -48,23 +76,10 @@ addpath(genpath('classes'));	% Load object-oriented architecture
 [mesh, clump]=GenerateClump_Euclidean_3D( stlFile, N, rMin, div, overlap, output );
 ```
 
-Python implementation of CLUMP:
-```Python
-# Generate clumps using the approach of Ferellec and McDowell (2010)
-from CLUMP import GenerateClump_Ferellec_McDowell
-mesh,clump=GenerateClump_Ferellec_McDowell(inputGeom, dmin, rmin, rstep, pmax, seed, output, outputVTK, visualise)
-
-# Generate clumps using the approach proposed in this code, involving the Euclidean transform of 3D images
-from CLUMP import GenerateClump_Euclidean_3D
-mesh,clump = GenerateClump_Euclidean_3D(inputGeom, N, rMin, div, overlap, output, outputVTK, visualise)
-```
-
 New users are advised to start from running the available examples in the [examples](examples) folder, to get familiarised with the syntax and functionalities of CLUMP.
 
 ## Credits
-The MATLAB and Python implementations of CLUMP use different sets of external dependencies.
-
-- CLUMP_MATLAB uses several external functions available within the Matlab FEX community. We want to acknowledge the following contributions:
+CLUMP uses several external functions available within the Matlab FEX community. We want to acknowledge the following contributions:
   - Qianqian Fang - [Iso2Mesh](https://uk.mathworks.com/matlabcentral/fileexchange/68258-iso2mesh)
   - Luigi Giaccari - [Surface Reconstruction From Scattered Points Cloud](https://www.mathworks.com/matlabcentral/fileexchange/63730-surface-reconstruction-from-scattered-points-cloud)
   - Pau Micó - [stlTools](https://uk.mathworks.com/matlabcentral/fileexchange/51200-stltools)
@@ -72,19 +87,8 @@ The MATLAB and Python implementations of CLUMP use different sets of external de
 
 These external dependencies are added within the source code of CLUMP, to provide an out-of-the-box implementation. The licensing terms of each external dependency can be found inside the [lib](lib/) folder.
 
-- CLUMP_Python uses alternative dependencies that carry out the same operations as their MATLAB counterparts. Some of the dependencies have also been translated from MATLAB to Python.
-
-  - [matplotlib](https://matplotlib.org/)
-  - [numpy](https://numpy.org/)
-  - [numpy-stl](https://numpy-stl.readthedocs.io/en/latest/)
-  - [os](https://docs.python.org/3/library/os.html)
-  - [pyvista](https://docs.pyvista.org/version/stable/)
-  - [scipy](https://scipy.org/)
-  - [time](https://docs.python.org/3/library/time.html)
-  - [trimesh](https://trimesh.org/)
-
 ## BYOS (Bring Your Own Scripts)!
-If you enjoy using CLUMP, you are welcome to request the implementation of new features or even better contribute and share your implementations of new or existing clump-generation techniques. CLUMP was created out of our intent to provide the DEM community with a means of easy comparison between different particle generation methods, by collecting them in one place and we share this tool hoping that members of the community will find it useful. So, feel free to expand the code, propose improvements and report issues.
+If you enjoy using CLUMP, you are welcome to require the implementation of new clump-generation approaches and features or even better contribute and share your implementations. CLUMP was created to provide a comparison of different methods, by collecting them in one place and we share this tool hoping that members of the community will find it useful. So, feel free to expand the code, propose improvements and report issues.
 
 ## Acknowledging CLUMP
 Angelidakis, V., Nadimi, S., Otsubo, M. and Utili, S., 2021. CLUMP: A Code Library to generate Universal Multi-sphere Particles. SoftwareX 15, p.100735.
