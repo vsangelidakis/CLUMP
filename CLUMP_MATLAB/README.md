@@ -53,11 +53,8 @@ CLUMP comprises the following modules:
 - __CLUMP__
   - [LICENSE](LICENSE)
   - [README.md](README.md)
-  - [README.txt](README.txt)
-  - __classes__ (Definition of objects)
   - __examples__
-  - __figures__
-  - __functions__
+  - __functions__ (internal functions)
   - __lib__ (External dependencies)
 
 
