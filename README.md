@@ -19,8 +19,6 @@
 </p>
 <p align="center">
   <a href="#what-CLUMP-does">What CLUMP does</a> •
-  <a href="#architectural-features">Architectural features</a> •
-  <a href="#file-tree">File tree</a> •
   <a href="#simple-example">Simple example</a> •
   <a href="#credits">Credits</a> •
   <a href="#byos-bring-your-own-scripts">BYOS</a>
@@ -70,7 +68,7 @@ The MATLAB and Python implementations of CLUMP use different sets of external de
   - Pau Micó - [stlTools](https://uk.mathworks.com/matlabcentral/fileexchange/51200-stltools)
   - Anton Semechko - [Rigid body parameters of closed surface meshes](https://uk.mathworks.com/matlabcentral/fileexchange/48913-rigid-body-parameters-of-closed-surface-meshes)
 
-These external dependencies are added within the source code of CLUMP, to provide an out-of-the-box implementation. The licensing terms of each external dependency can be found inside the [lib](lib/) folder.
+These external dependencies are added within the source code of CLUMP, to provide an out-of-the-box implementation. The licensing terms of each external dependency can be found inside the [lib](CLUMP_MATLAB/lib/) folder.
 
 - CLUMP_Python uses alternative dependencies that carry out the same operations as their MATLAB counterparts. Some of the dependencies have also been translated from MATLAB to Python.
 
