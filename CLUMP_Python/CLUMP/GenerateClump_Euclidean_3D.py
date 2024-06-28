@@ -177,8 +177,9 @@ def GenerateClump_Euclidean_3D(inputGeom, N, rMin, div, overlap, **kwargs):
         rInscribed = np.max(edtImage)
         radius = np.min([rMax,rInscribed]);
 
-        if radius < rMin:
+        if radius * voxel_size < rMin:
             print(f"The mimimum radius rMin={rMin} has been met using {k - 1} spheres")
+            break
 
         xyzCenter = np.argwhere(edtImage == rInscribed)
 
